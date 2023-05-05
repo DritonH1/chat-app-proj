@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  font-size: 16px;
+  line-height: 0.7;
+}
+.user-list {
+  position: fixed;
+  top: 0;
+  right: 5mm;
+  width: 200px;
+  height: 100%;
+  overflow-y: scroll;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+
+.container {
+  max-width: 400px;
+  margin: 10px 10px;
+}
+
+
+.chat-area {
+  height: 300px;
+  width: 400px;
+  margin: 1px 10px;
+  overflow-y: scroll;
+}
+
+.darker {
+  border-color: #ccc;
+  background-color: #ddd;
+  margin-bottom: 10px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+
+}
+.container::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+.container img {
+  float: left;
+  max-width: 60px;
+  width: 100%;
+  margin-right: 20px;
+  border-radius: 50%;
+  height: 70px;
+}
+.container img.right {
+  float: right;
+  margin-left: 20px;
+  margin-right:0;
+}
+.time-right {
+  float: right;
+  color: #aaa;
+}
+.time-left {
+  float: left;
+  color: #999;
+}
+
+</style>
+<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+</head>
+<body>
+<h2>{{room}} - Chat Room</h2>
+<div class="chat-area" id="chat-area">
+  <div id="display"></div>
+</div>
+<script>
+
+
+
+$(document).ready(function(){
+setInterval(function(){
+    $.ajax({
+        type: 'GET',
+        url : "/getMessages/{{room}}/",
+        success: function(response){
+            console.log(response);
+            $("#display").empty();
+            for (var key in response.messages)
+                {
+                     var temp="<div class='container'><b>"+response.messages[key].user+"</b><p>"+response.messages[key].value+"</p><span class='time-left'>"+response.messages[key].date+"</span></div>";
+                    $("#display").append(temp);
+                }
+         $("#chat-area").scrollTop($("#chat-area")[0].scrollHeight);
+        },
+        error: function(response){
+            alert('An error occured')
+        }
+    });
+},1000);
+})
+</script>
+<div class="container">
+    <style>
+    input[type=text], select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    
+    }
+    input[type=submit] {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    }
+    input[type=submit]:hover {
+    background-color: #45A049;
+    }
+    div {
+    border-radius: 5px;
+    background-color: #F2F2F2;
+    padding: 20px;
+    }
+    </style>
+    
+    <form id="post-form">
+        {% csrf_token %}
+        <input type="hidden" name="username" id="username" value="{{username}}"/>
+        <input type="hidden" name="room_id" id="room_id" value="{{room_details.id}}"/>
+        <input type="text" name="message" id="message" width="80px" />
+        <input type="submit" value="Send">
+    </form>
+    
+</div>
+<div class="user-list">
+  <h4>Users in this room:</h4>
+  <ul>
+    <li>{{ username }}</li>
+  </ul>
+</div>
+
+<a href="{% url 'home' %}"><button>Return to Home Page</button></a>
+</body>
+<script type="text/javascript">
+  $(document).on('submit','#post-form',function(e){
+    e.preventDefault();
+    $.ajax({
+      type:'POST',
+      url:'/send',
+      data:{
+          username:$('#username').val(),
+          room_id:$('#room_id').val(),
+          message:$('#message').val(),
+        csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+      },
+      success: function(data){
+         //alert(data)
+      }
+    });
+    document.getElementById('message').value = ''
+  });
+</script>
+
+
+
+
+</html>
+
+ 
